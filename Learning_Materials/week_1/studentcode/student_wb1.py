@@ -1,34 +1,28 @@
-# Save student_wb1.py correctly
-
 from approvedimports import *
 
 def exhaustive_search_4tumblers(puzzle: CombinationProblem) -> list:
-    """Simple brute-force search method that tries every combination until
+    """simple brute-force search method that tries every combination until
     it finds the answer to a 4-digit combination lock puzzle.
     """
 
-    # Check that the lock has the expected number of digits
-    assert puzzle.numdecisions == 4, "This code only works for 4-digit locks"
+    # check that the lock has the expected number of digits
+    assert puzzle.numdecisions == 4, "this code only works for 4 digits"
 
-    # Create an empty candidate solution
-    my_attempt = CandidateSolution()  # ✅ Fixed
-    my_attempt.variable_values = [0, 0, 0, 0]  # ✅ Initialize properly
+    # create an empty candidate solution
+    my_attempt = CandidateSolution()
 
-    # Loop through all possible values for each tumbler
+#insert your code below here
     for digit1 in puzzle.value_set:
         for digit2 in puzzle.value_set:
             for digit3 in puzzle.value_set:
                 for digit4 in puzzle.value_set:
-                    
-                    # Assign the current combination to the candidate solution
                     my_attempt.variable_values = [digit1, digit2, digit3, digit4]
-
-                    # Debug: Print current attempt
-                    print(f"Trying: {my_attempt.variable_values}")
-
-                    # Evaluate the attempt and return if correct
-                    if puzzle.evaluate(my_attempt.variable_values):  # ✅ Ensure we pass only the list
-                        return my_attempt.variable_values
-
-    # If no solution is found, return an invalid combination
+                    try:
+                        result = puzzle.evaluate(my_attempt.variable_values)
+                        if result == 1:
+                            return my_attempt.variable_values
+                    except Exception:
+                        pass
+#insert your code above here
+#should never get here
     return [-1, -1, -1, -1]
