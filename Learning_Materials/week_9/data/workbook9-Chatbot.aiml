@@ -1,9 +1,8 @@
 <aiml version="1.0.1" encoding="UTF-8">
 
-
 <category>
-  <pattern> GREETINGS</pattern>
-  <template> Hi there!</template>
+  <pattern> GREETINGS </pattern>
+  <template> Hello there! </template>
 </category>
 
 <!--
@@ -14,5 +13,10 @@ so this line is a comment too
 <!-- 
 ADD AT LEAST ONE NEW CATEGORY  BELOW THIS COMMENT
 -->
+
+<category>
+  <pattern> HELLO </pattern>
+  <template> Hey! Nice to meet you. </template>
+</category>
 
 </aiml>
