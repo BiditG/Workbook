@@ -27,17 +27,17 @@ def exhaustive_search_4tumblers(puzzle: CombinationProblem) -> list:
 #should never get here
     return [-1, -1, -1, -1]
 
-
 def get_names(namearray: np.ndarray) -> list:
     family_names = []
-    # ====> insert your code below here
-    for i in range(namearray.shape[0]):
-        # Slice the last 6 characters of each row
-        family_chars = namearray[i, -6:]
-        family_name = ''.join(family_chars).strip()
-        family_names.append(family_name)
-    
-    # <==== insert your code above here
+# ====> insert your code below here
+    for i in range(namearray.shape[0]): 
+        family_chars = namearray[i, -6:]  
+        family_name = ''.join(family_chars)  
+        family_names.append(family_name)  
+    return family_names  
+
+  
+# <==== insert your code above here
     return family_names
 
 
