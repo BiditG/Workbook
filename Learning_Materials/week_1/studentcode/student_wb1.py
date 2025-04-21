@@ -34,8 +34,6 @@ def get_names(namearray: np.ndarray) -> list:
         family_chars = namearray[i, -6:]  
         family_name = ''.join(family_chars)  
         family_names.append(family_name)  
-    return family_names  
-
   
 # <==== insert your code above here
     return family_names
@@ -47,24 +45,26 @@ def check_sudoku_array(attempt: np.ndarray) -> int:
 
     # ====> insert your code below here
 
-    # Assert the shape is exactly (9, 9)
+    # use assertions to check that the array has 2 dimensions each of size 9
     assert attempt.ndim == 2 and attempt.shape[0] == 9 and attempt.shape[1] == 9, "Input must be a 9x9 2D array."
 
-    # Add 9 row slices
+
+    ## Remember all the examples of indexing above
+    ## and use the append() method to add something to a list
+
     for i in range(9):
         slices.append(attempt[i, :])
 
-    # Add 9 column slices
     for j in range(9):
         slices.append(attempt[:, j])
 
-    # Add 9 sub-squares (3x3)
-    for row in range(0, 9, 3):        # rows: 0, 3, 6
-        for col in range(0, 9, 3):    # cols: 0, 3, 6
+    # Adding 9 sub-squares (3x3)
+    for row in range(0, 9, 3):        # rows -> 0, 3, 6
+        for col in range(0, 9, 3):    # cols -> 0, 3, 6
             square = attempt[row:row+3, col:col+3]
             slices.append(square.flatten())  # flatten 3x3 into 1D for uniqueness check
 
-    # Check uniqueness for each slice
+    # easiest way to iterate over list
     for slice in slices:
         if len(np.unique(slice)) == 9:
             tests_passed += 1
