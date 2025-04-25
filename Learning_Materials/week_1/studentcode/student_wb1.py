@@ -34,7 +34,8 @@ def get_names(namearray: np.ndarray) -> list:
         family_chars = namearray[i, -6:]  
         family_name = ''.join(family_chars)  
         family_names.append(family_name)  
-  
+
+
 # <==== insert your code above here
     return family_names
 
@@ -58,11 +59,11 @@ def check_sudoku_array(attempt: np.ndarray) -> int:
     for j in range(9):
         slices.append(attempt[:, j])
 
-    # Adding 9 sub-squares (3x3)
+    # Adding 9 sub-squares 
     for row in range(0, 9, 3):        # rows -> 0, 3, 6
         for col in range(0, 9, 3):    # cols -> 0, 3, 6
             square = attempt[row:row+3, col:col+3]
-            slices.append(square.flatten())  # flatten 3x3 into 1D for uniqueness check
+            slices.append(square.flatten())  # flattened the 3x3 shape to 1D for uniqueness checking
 
     # easiest way to iterate over list
     for slice in slices:
@@ -73,3 +74,5 @@ def check_sudoku_array(attempt: np.ndarray) -> int:
 
     # return count of tests passed
     return tests_passed
+
+
