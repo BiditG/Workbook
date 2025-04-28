@@ -5,60 +5,85 @@ def cluster_and_visualise(datafile_name:str, K:int, feature_names:list):
     """Function to get the data from a file, perform K-means clustering and produce a visualisation of results.
 
     Parameters
-        ----------
-        datafile_name: str
-            path to data file
+    ----------
+    datafile_name: str
+        path to data file
 
-        K: int
-            number of clusters to use
-        
-        feature_names: list
-            list of feature names
+    K: int
+        number of clusters to use
 
-        Returns
-        ---------
-        fig: matplotlib.figure.Figure
-            the figure object for the plot
-        
-        axs: matplotlib.axes.Axes
-            the axes object for the plot
+    feature_names: list
+        list of feature_names
+
+    Returns
+    ---------
+    fig: matplotlib.figure.Figure
+        the figure object for the plot
+
+    axs: matplotlib.axes.Axes
+        the axes object for the plot
     """
     # ====> insert your code below here
+    # Load the data
+    data_array = np.genfromtxt(datafile_name, delimiter=',')
 
-    # 1. get the data from file into a numpy array
-    data = np.genfromtxt(datafile_name, delimiter=',', skip_header=1)
+    # Perform K-means clustering
+    main_cluster_model = KMeans(n_clusters=K, n_init=10)
+    main_cluster_model.fit(data_array)
+    cluster_labels = main_cluster_model.predict(data_array)
 
-    # 2. create a K-Means cluster model with the specified number of clusters
-    kmeans = KMeans(n_clusters=K)
-    cluster_labels = kmeans.fit_predict(data)
+    # Set up the plot grid
+    num_features = data_array.shape[1]
+    fig, ax = plt.subplots(num_features, num_features, figsize=(12, 12))
+    plt.set_cmap('viridis')
 
-    # 3. create a canvas(fig) and axes to hold your visualisation
-    num_features = data.shape[1]
-    fig, axs = plt.subplots(nrows=num_features, ncols=num_features, figsize=(10, 10))
-    fig.suptitle(f'Visualisation of {K} clusters by your-username', fontsize=16)
+    # Set colors for histograms
+    hist_colors = plt.get_cmap('viridis', K).colors
 
-    # 4. make the scatter plot matrix with colour-coded clusters
-    for i in range(num_features):
-        for j in range(num_features):
-            ax = axs[i, j]
-            if i == j:
-                ax.hist(data[:, i], bins=15, color='gray', edgecolor='black')
+    # Loop through each feature pair
+    f1 = 0
+    while f1 < num_features:
+        ax[f1, 0].set_ylabel(feature_names[f1])
+        ax[0, f1].set_xlabel(feature_names[f1])
+        ax[0, f1].xaxis.set_label_position('top')
+
+        f2 = 0
+        while f2 < num_features:
+            plot_data_x = data_array[:, f1].copy()
+            plot_data_y = data_array[:, f2].copy()
+
+            # Sort the data by cluster labels
+            order_idx = np.argsort(cluster_labels)
+            ordered_x = plot_data_x[order_idx]
+            ordered_y = plot_data_y[order_idx]
+
+            if f1 != f2:
+                # Scatter plot for feature pairs
+                ax[f1, f2].scatter(ordered_x, ordered_y, c=cluster_labels, s=50, marker='^', edgecolor='black', alpha=0.7)
             else:
-                for cluster in range(K):
-                    cluster_points = data[cluster_labels == cluster]
-                    ax.scatter(cluster_points[:, j], cluster_points[:, i], label=f"Cluster {cluster}", alpha=0.6)
+                # Histogram for single feature
+                hist_idx = np.argsort(cluster_labels)
+                hist_data = plot_data_x[hist_idx]
+                hist_labels = cluster_labels[hist_idx]
 
-            if i == num_features - 1:
-                ax.set_xlabel(feature_names[j])
-            if j == 0:
-                ax.set_ylabel(feature_names[i])
+                split_indices = np.unique(hist_labels, return_index=True)[1][1:]
+                data_splits = np.split(hist_data, split_indices)
 
-    # Optional: only add legend to the top-right subplot
-    axs[0, -1].legend(loc='upper left', bbox_to_anchor=(1, 1))
+                k = 0
+                while k < K:
+                    ax[f1, f2].hist(data_splits[k], bins=20, color=hist_colors[k], edgecolor='black', alpha=0.7)
+                    k += 1
 
-    # 5. save it to file as specified
-    plt.tight_layout()
-    plt.savefig("myVisualisation.jpg", bbox_inches='tight')
+            f2 += 1
+        f1 += 1
 
-    return fig, axs
+    # Add a title
+    user_name = "(Bidit Giri_24030151)"
+    fig.suptitle(f'Visualisation of {K} clusters by {user_name}', fontsize=16, y=0.925)
+
+    # Save the plot
+    fig.savefig('myVisualisation.jpg')
+
+    return fig, ax
     # <==== insert your code above here
+

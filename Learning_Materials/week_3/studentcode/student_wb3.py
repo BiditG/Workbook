@@ -30,7 +30,6 @@ class DepthFirstSearch(SingleMemberSearch):
 
         # Pseudocode:
         # 1. Set my_index to the last index in the open list
-        #    (Depth-First uses LIFO order — Last In, First Out)
         # 2. Retrieve the candidate solution at that index
         # 3. Remove that candidate from the open list
         # 4. Return the retrieved candidate
@@ -66,7 +65,7 @@ class BreadthFirstSearch(SingleMemberSearch):
         # ====> insert your pseudo-code and code below here
 
         # Pseudocode:
-        # 1. Set the index of the next node to explore (breadth-first means FIFO, so index 0)
+        # 1. Set the index of the next node to explore
         # 2. Retrieve the candidate solution from the front of the open_list
         # 3. Remove it from the open_list 
         # 4. Return that candidate solution for further exploration
@@ -102,7 +101,7 @@ class BestFirstSearch(SingleMemberSearch):
         # 1. If the open list is empty, return None 
         # 2. Initialize best_index to 0 (assume first element is best initially)
         # 3. Loop through all elements in open_list:
-        #       - If an element has better (lower) quality than the current best,
+        #       -> If an element has better (lower) quality than the current best,
         #         update best_index
         # 4. Remove and return the candidate solution at best_index
 
@@ -140,13 +139,17 @@ class AStarSearch(SingleMemberSearch):
         # ====> insert your pseudo-code and code below here
 
         # Pseudocode:
-        # 1. If the open_list is empty return None 
-        # 2. Set best_index = 0 
-        # 3. Loop through each item in open_list:
-        #    a. Calculate its total cost as: path_length + quality 
-        #    b. If this total cost is lower than the best so far, update best_index
-        # 4. Pop the best candidate (with lowest total cost) from open_list
-        # 5. Return that candidate as the next solution to explore
+        # 1. If the open list is empty return none
+        # 2. Set best_index to 0 
+        # 3. For each candidate in the open list:
+        #    a. Calculate the total estimated cost:
+        #       f(n) = g(n) + h(n)
+        #       where:
+        #         g(n) = path cost so far (length of variable_values)
+        #         h(n) = heuristic estimate to goal (quality)
+        #    b. If f(n) is lower than the best so far, update best_index
+        # 4. Remove the candidate at best_index from the open list
+        # 5. Return it as the next solution
 
         # IF IsEmpty(open_list) THEN
         if not self.open_list:
