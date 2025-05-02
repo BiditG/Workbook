@@ -23,43 +23,54 @@ def make_xor_reliability_plot(train_x, train_y):
     
     # ====> insert your code below here
 
-    hidden_layer_width = list(range(1, 11))
-    successes = np.zeros(10)
+    # Hidden Layers
+    hidden_layer_width = list(range(1, 11))  # [1, 2, ..., 10]
+    successes = np.zeros(10) # how many times the training reaches 100% accuracy
     epochs = np.zeros((10, 10))
 
-    for h_nodes in hidden_layer_width:
+    # Loop through each hidden layer width
+    for h_idx, h_nodes in enumerate(hidden_layer_width):
         for repetition in range(10):
-            xorMLP = MLPClassifier(hidden_layer_sizes=(h_nodes,), max_iter=2000, random_state=repetition)
-            xorMLP.fit(train_x, train_y)
-            train_pred = xorMLP.predict(train_x)
-            acc = (train_pred == train_y).mean()
+            xorMLP = MLPClassifier(
+                hidden_layer_sizes=(h_nodes,),
+                max_iter=1000,
+                alpha=1e-4,
+                solver="sgd",
+                learning_rate_init=0.1,
+                random_state=repetition
+            )
+            _ = xorMLP.fit(train_x, train_y)
+            training_accuracy = 100 * xorMLP.score(train_x, train_y)
 
-            if acc == 1.0:
-                successes[h_nodes - 1] += 1
-                epochs[h_nodes - 1][repetition] = xorMLP.n_iter_
+            if training_accuracy == 100:
+                successes[h_idx] += 1
+                epochs[h_idx][repetition] = xorMLP.n_iter_
 
     efficiency = np.zeros(10)
     for i in range(10):
         if successes[i] == 0:
             efficiency[i] = 1000
         else:
-            efficiency[i] = epochs[i].sum() / successes[i]
+            efficiency[i] = np.mean(epochs[i][epochs[i] > 0])
 
-    fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+    fig, ax = plt.subplots(1, 2, figsize=(12, 5))
 
-    axs[0].plot(hidden_layer_width, successes / 10.0)
-    axs[0].set_title("Reliability")
-    axs[0].set_xlabel("Hidden Layer Width")
-    axs[0].set_ylabel("Success Rate")
+    # Left plot for Reliability
+    ax[0].plot(hidden_layer_width, successes)
+    ax[0].set_title("Reliability")
+    ax[0].set_ylabel("Success Rate")
+    ax[0].set_xlabel("Hidden Layer Width")
 
-    axs[1].plot(hidden_layer_width, efficiency)
-    axs[1].set_title("Efficiency")
-    axs[1].set_xlabel("Hidden Layer Width")
-    axs[1].set_ylabel("Mean Epochs")
+    # Right plot for Efficiency
+    ax[1].plot(hidden_layer_width, efficiency)
+    ax[1].set_title("Efficiency")
+    ax[1].set_ylabel("Mean Epochs")
+    ax[1].set_xlabel("Hidden Layer Width")
 
+ 
     # <==== insert your code above here
 
-    return fig, axs
+    return fig, ax
 
 # make sure you have the packages needed
 from approvedimports import *
@@ -71,6 +82,12 @@ class MLComparisonWorkflow:
     def __init__(self, datafilename:str, labelfilename:str):
         """ Method to load the feature data and labels from files with given names,
         and store them in arrays called data_x and data_y.
+        
+        You may assume that the features in the input examples are all continuous variables
+        and that the labels are categorical, encoded by integers.
+        The two files should have the same number of rows.
+        Each row corresponding to the feature values and label
+        for a specific training item.
         """
         # Define the dictionaries to store the models, and the best performing model/index for each algorithm
         self.stored_models:dict = {"KNN":[], "DecisionTree":[], "MLP":[]}
@@ -87,81 +104,98 @@ class MLComparisonWorkflow:
         """ Method to 
            - separate it into train and test splits (using a 70:30 division)
            - apply the preprocessing you think suitable to the data
-           - create one-hot versions of the labels for the MLP if there are more than 2 classes
+           - create one-hot versions of the labels for the MLP if ther are more than 2 classes
+ 
+           Remember to set random_state = 12345 if you use train_test_split()
         """
         # ====> insert your code below here
+
+        # Stratified split (70:30)
         self.train_x, self.test_x, self.train_y, self.test_y = train_test_split(
             self.data_x, self.data_y, test_size=0.3, stratify=self.data_y, random_state=12345
         )
 
-        self.scaler = StandardScaler()
-        self.train_x = self.scaler.fit_transform(self.train_x)
-        self.test_x = self.scaler.transform(self.test_x)
+        # Normalization (MinMaxScaler)
+        scaler = MinMaxScaler()
+        self.train_x = scaler.fit_transform(self.train_x)
+        self.test_x = scaler.transform(self.test_x)
 
+        # One-hot encode if multi-class (for MLP)
+        self.train_y_onehot = self.train_y
+        self.test_y_onehot = self.test_y
         if len(np.unique(self.data_y)) >= 3:
-            self.train_y_mlp = to_categorical(self.train_y)
-            self.test_y_mlp = to_categorical(self.test_y)
-        else:
-            self.train_y_mlp = self.train_y
-            self.test_y_mlp = self.test_y
+            encoder = LabelBinarizer()
+            self.train_y_onehot = encoder.fit_transform(self.train_y)
+            self.test_y_onehot = encoder.transform(self.test_y)
         # <==== insert your code above here
     
     def run_comparison(self):
         """ Method to perform a fair comparison of three supervised machine learning algorithms.
         Should be extendable to include more algorithms later.
+        
+        For each of the algorithms KNearest Neighbour, DecisionTreeClassifer and MultiLayerPerceptron
+        - Applies hyper-parameter tuning to find the best combination of relevant values for the algorithm
+         -- creating and fitting model for each combination, 
+            then storing it in the relevant list in a dictionary called self.stored_models
+            which has the algorithm names as the keys and  lists of stored models as the values
+         -- measuring the accuracy of each model on the test set
+         -- keeping track of the best performing model for each algorithm, and its index in the relevant list so it can be retrieved.
+        
         """
         # ====> insert your code below here
-
-        # 1. KNN
+                # KNN hyperparameters
         for k in [1, 3, 5, 7, 9]:
             model = KNeighborsClassifier(n_neighbors=k)
             model.fit(self.train_x, self.train_y)
-            acc = model.score(self.test_x, self.test_y)
+            accuracy = model.score(self.test_x, self.test_y)
             self.stored_models["KNN"].append(model)
-            if acc > self.best_accuracy["KNN"]:
-                self.best_accuracy["KNN"] = acc
+            if accuracy > self.best_accuracy["KNN"]:
+                self.best_accuracy["KNN"] = accuracy
                 self.best_model_index["KNN"] = len(self.stored_models["KNN"]) - 1
 
-        # 2. Decision Tree
+        # Decision Tree hyperparameters
         for depth in [1, 3, 5]:
             for min_split in [2, 5, 10]:
                 for min_leaf in [1, 5, 10]:
                     model = DecisionTreeClassifier(
-                        max_depth=depth, min_samples_split=min_split,
-                        min_samples_leaf=min_leaf, random_state=12345
+                        max_depth=depth,
+                        min_samples_split=min_split,
+                        min_samples_leaf=min_leaf,
+                        random_state=12345
                     )
                     model.fit(self.train_x, self.train_y)
-                    acc = model.score(self.test_x, self.test_y)
+                    accuracy = model.score(self.test_x, self.test_y)
                     self.stored_models["DecisionTree"].append(model)
-                    if acc > self.best_accuracy["DecisionTree"]:
-                        self.best_accuracy["DecisionTree"] = acc
+                    if accuracy> self.best_accuracy["DecisionTree"]:
+                        self.best_accuracy["DecisionTree"] = accuracy
                         self.best_model_index["DecisionTree"] = len(self.stored_models["DecisionTree"]) - 1
 
-        # 3. MLP
-        for h1 in [2, 5, 10]:
-            for h2 in [0, 2, 5]:
-                for act in ["logistic", "relu"]:
-                    if h2 == 0:
-                        layers = (h1,)
+        # MLP hyperparameters
+        for n1 in [2, 5, 10]:
+            for n2 in [0, 2, 5]:
+                for activation in ["logistic", "relu"]:
+                    if n2 == 0:
+                        layers = (n1,)
                     else:
-                        layers = (h1, h2)
+                        layers = (n1, n2)
                     model = MLPClassifier(
                         hidden_layer_sizes=layers,
-                        activation=act,
+                        activation=activation,
                         max_iter=1000,
                         random_state=12345
                     )
-                    model.fit(self.train_x, self.train_y_mlp)
-                    acc = model.score(self.test_x, self.test_y_mlp)
+                    model.fit(self.train_x, self.train_y_onehot)
+                    accuracy= model.score(self.test_x, self.test_y_onehot)
                     self.stored_models["MLP"].append(model)
-                    if acc > self.best_accuracy["MLP"]:
-                        self.best_accuracy["MLP"] = acc
+                    if accuracy> self.best_accuracy["MLP"]:
+                        self.best_accuracy["MLP"] = accuracy
                         self.best_model_index["MLP"] = len(self.stored_models["MLP"]) - 1
 
         # <==== insert your code above here
     
     def report_best(self) :
         """Method to analyse results.
+
         Returns
         -------
         accuracy: float
@@ -174,13 +208,10 @@ class MLComparisonWorkflow:
             the actual fitted model to be interrogated by marking code.
         """
         # ====> insert your code below here
-        best_algo = None
-        best_acc = -1
-        for algo in self.best_accuracy:
-            if self.best_accuracy[algo] > best_acc:
-                best_acc = self.best_accuracy[algo]
-                best_algo = algo
-        best_model = self.stored_models[best_algo][self.best_model_index[best_algo]]
-        return best_acc, best_algo, best_model
-        # <==== insert your code above here
+        best_algorithm = max(self.best_accuracy, key=self.best_accuracy.get)
+        best_index = self.best_model_index[best_algorithm]
+        best_model = self.stored_models[best_algorithm][best_index]
+        best_acc = self.best_accuracy[best_algorithm]
+        return best_acc, best_algorithm, best_model
 
+        # <==== insert your code above here

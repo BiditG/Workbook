@@ -1,16 +1,25 @@
 <aiml>
 <category>
-  <pattern> MY ORDER NUMBER IS *</pattern>
+  <pattern>MY ORDER NUMBER IS *</pattern>
   <template>
-
-     <random>
-      <li><think><set name="status">transit</set></think>Your order has been dispatched and is in transit</li>
-      <li><think><set name="status">delivered</set></think>Your order has been marked as delivered.</li>
-      <li><think><set name="status">not recognised</set></think>Your order number is not recognised.</li>
-      <li><think><set name="status">out of stock</set></think>We apologise. One or more items in your order were out of stock. We will dispatch as soon as we receive new supplies.</li>
+    <random>
+      <li>
+        <think><set name="status">transit</set></think>
+        Your order has been dispatched and is in transit.
+      </li>
+      <li>
+        <think><set name="status">delivered</set></think>
+        Your order has been marked as delivered.
+      </li>
+      <li>
+        <think><set name="status">lost</set></think>
+        Your order number is not recognised.
+      </li>
+      <li>
+        <think><set name="status">out_of_stock</set></think>
+        We apologise. One or more items in your order were out of stock. We will dispatch as soon as we receive new supplies.
+      </li>
     </random>
- 
   </template>
 </category>
-
 </aiml>
